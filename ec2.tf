@@ -68,7 +68,7 @@ resource "aws_security_group" "jumpbox" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["24.84.233.107/32"]
+    cidr_blocks = [var.my_home]
     description = "Marcos Rocha Home"
   }
 
