@@ -1,5 +1,6 @@
 variable "access_key" { type = string }
 variable "secret_key" { type = string }
+variable "my_home" { type = string }
 variable "aws_region" { default = "ca-central-1" }
 variable "vpc_cidr" { default = "10.1.0.0/16" }
 variable "resource_prefix" { default = "test" }
