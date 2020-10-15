@@ -64,10 +64,10 @@ jobs:
       SECRET_KEY: ${{ secrets.ZENHUB_AWS_SECRET_KEY}}
       PUB_KEY: ${{ secrets.PUB_KEY }}
       MY_IP: ${{ secrets.MY_IP }}
-      TF_VAR_access_key: $ACCESS_KEY
-      TF_VAR_secret_key: $SECRET_KEY
-      TF_VAR_pub_key: $PUB_KEY
-      TF_VAR_my_home: $MY_IP
+      TF_VAR_access_key: ${{ secrets.ZENHUB_AWS_ACCESS_KEY }} #$ACCESS_KEY
+      TF_VAR_secret_key: ${{ secrets.ZENHUB_AWS_SECRET_KEY}} #$SECRET_KEY
+      TF_VAR_pub_key: ${{ secrets.PUB_KEY }} #$PUB_KEY
+      TF_VAR_my_home: ${{ secrets.MY_IP }} #$MY_IP
 
     steps:
       # Checkout the repository to the GitHub Actions runner
