@@ -12,32 +12,25 @@ jobs:
     runs-on: ubuntu-latest
     container: hashicorp/terraform:0.12.23
 
-    # defaults:
-    #   run:
-    #     shell: bash
     env:
-      TF_VAR_access_key: ${{ secrets.ZENHUB_AWS_ACCESS_KEY }} #$ACCESS_KEY
-      TF_VAR_secret_key: ${{ secrets.ZENHUB_AWS_SECRET_KEY}} #$SECRET_KEY
-      TF_VAR_pub_key: ${{ secrets.PUB_KEY }} #$PUB_KEY
-      TF_VAR_my_home: ${{ secrets.MY_IP }} #$MY_IP
+      TF_VAR_access_key: ${{ secrets.ZENHUB_AWS_ACCESS_KEY }}
+      TF_VAR_secret_key: ${{ secrets.ZENHUB_AWS_SECRET_KEY}}
+      TF_VAR_pub_key: ${{ secrets.PUB_KEY }}
+      TF_VAR_my_home: ${{ secrets.MY_IP }}
 
     steps:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout
         uses: actions/checkout@v2
 
-      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-      # - name: Setup Terraform
-      #   uses: hashicorp/setup-terraform@v1
-      #   with:
-      #     terraform_version: 0.12.23
-      #   cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
       - name: Terraform Init
+        id: init
         run: terraform init
 
       # Checks that all Terraform configuration files adhere to a canonical format
       - name: Terraform Format
+        id: format
         run: terraform fmt -check
 
         # continue-on-error: true
@@ -47,9 +40,34 @@ jobs:
 
       # Generates an execution plan for Terraform
       - name: Terraform Plan
+        id: plan
         run: terraform plan
+
+      - name: Update Pull Request
+        uses: actions/github-script@0.9.0
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Validate ⚙️\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            <details><summary>Show Plan</summary>
+            \`\`\`${process.env.PLAN}\`\`\`
+            </details>
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+              
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
         # On push to main, build or change infrastructure according to Terraform configuration files
         # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+
 #    - name: Terraform Apply
 #      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 #      run: terraform apply -auto-approve
