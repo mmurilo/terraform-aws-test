@@ -50,7 +50,7 @@ jobs:
       # Generates an execution plan for Terraform
       - name: Terraform Plan
         id: plan
-        run: terraform plan
+        run: terraform plan -no-color
 
         # if: github.event_name == 'pull_request'
         # continue-on-error: true

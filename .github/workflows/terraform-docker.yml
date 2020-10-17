@@ -41,13 +41,17 @@ jobs:
       # Generates an execution plan for Terraform
       - name: Terraform Plan
         id: plan
-        run: terraform plan
+        run: terraform plan -no-color -out planfile
+
+      - name: Terraform Plan output
+        id: planfile
+        run: echo ::set-output name=plan::$(cat planfile)
 
       - name: Update Pull Request
         uses: actions/github-script@0.9.0
         if: github.event_name == 'pull_request'
         env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+          PLAN: "terraform\n${{ steps.plan.outputs.plan }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -67,6 +71,7 @@ jobs:
             })
         # On push to main, build or change infrastructure according to Terraform configuration files
         # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+
 
 #    - name: Terraform Apply
 #      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
