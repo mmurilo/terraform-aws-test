@@ -30,7 +30,7 @@ jobs:
 
       # Checks that all Terraform configuration files adhere to a canonical format
       - name: Terraform Format
-        id: format
+        id: fmt
         run: terraform fmt -check
 
         # continue-on-error: true
@@ -41,17 +41,17 @@ jobs:
       # Generates an execution plan for Terraform
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -out planfile
+        run: terraform plan -no-color #-out planfile
 
-      - name: Terraform Plan output
-        id: planfile
-        run: echo ::set-output name=plan::$(cat planfile)
+      # - name: Terraform Plan output
+      #   id: planfile
+      #   run: echo ::set-output name=plan::$(cat planfile)
 
       - name: Update Pull Request
-        uses: actions/github-script@0.9.0
+        uses: actions/github-script@v3 #0.9.0
         if: github.event_name == 'pull_request'
         env:
-          PLAN: "terraform\n${{ steps.plan.outputs.plan }}"
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
