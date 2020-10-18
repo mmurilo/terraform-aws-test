@@ -12,10 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     container: hashicorp/terraform:0.12.23
 
-    defaults:
-      run:
-        shell: bash
-
     env:
       TF_VAR_access_key: ${{ secrets.ZENHUB_AWS_ACCESS_KEY }}
       TF_VAR_secret_key: ${{ secrets.ZENHUB_AWS_SECRET_KEY}}
@@ -45,17 +41,34 @@ jobs:
       # Generates an execution plan for Terraform
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color #-out planfile
+        run: terraform plan -no-color -out planfile
 
-      # - name: Terraform Plan output
-      #   id: planfile
-      #   run: echo ::set-output name=plan::$(cat planfile)
+      - name: Upload planfile
+        uses: actions/upload-artifact@v2
+        with:
+          name: tf-plan
+          path: planfile
+
+  updatepr:
+    needs: terraform-docker
+    name: UpdatePR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download planfile
+        uses: actions/download-artifact@v2
+        with:
+          name: tf-plan
+
+      - name: Terraform Plan output
+        id: planfile
+        run: echo ::set-output name=plan::$(cat planfile)
 
       - name: Update Pull Request
         uses: actions/github-script@v3 #0.9.0
         if: github.event_name == 'pull_request'
         env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+          PLAN: "terraform\n${{ steps.planfile.outputs.plan }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
