@@ -7,10 +7,14 @@ on:
   pull_request:
 
 jobs:
-  terraform-dokcer:
-    name: "Terraform"
+  terraform-docker:
+    name: Terraform
     runs-on: ubuntu-latest
     container: hashicorp/terraform:0.12.23
+
+    defaults:
+      run:
+        shell: bash
 
     env:
       TF_VAR_access_key: ${{ secrets.ZENHUB_AWS_ACCESS_KEY }}
