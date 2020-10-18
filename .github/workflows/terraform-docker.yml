@@ -41,29 +41,29 @@ jobs:
       # Generates an execution plan for Terraform
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -out=planfile
+        run: terraform plan -out=planfile
 
-      - name: Upload planfile
-        uses: actions/upload-artifact@v2
-        with:
-          name: tf-plan
-          path: planfile
-          retention-days: 1
+      #     - name: Upload planfile
+      #       uses: actions/upload-artifact@v2
+      #       with:
+      #         name: tf-plan
+      #         path: planfile
+      #         retention-days: 1
 
-  updatepr:
-    needs: terraform-docker
-    name: UpdatePR
-    runs-on: ubuntu-latest
+      # updatepr:
+      #   needs: terraform-docker
+      #   name: UpdatePR
+      #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Download planfile
-        uses: actions/download-artifact@v2
-        with:
-          name: tf-plan
+      #   steps:
+      #     - name: Download planfile
+      #       uses: actions/download-artifact@v2
+      #       with:
+      #         name: tf-plan
 
       - name: Terraform Plan output
         id: planfile
-        run: echo ::set-output name=plan::$(cat planfile)
+        run: echo ::set-output name=plan::$(terraform show -no-color planfile)
 
       - name: Update Pull Request
         uses: actions/github-script@v3 #0.9.0
