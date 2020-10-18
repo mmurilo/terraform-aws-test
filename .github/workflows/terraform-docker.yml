@@ -41,13 +41,14 @@ jobs:
       # Generates an execution plan for Terraform
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -out planfile
+        run: terraform plan -no-color -out=planfile
 
       - name: Upload planfile
         uses: actions/upload-artifact@v2
         with:
           name: tf-plan
           path: planfile
+          retention-days: 1
 
   updatepr:
     needs: terraform-docker
