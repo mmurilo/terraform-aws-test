@@ -1,0 +1,49 @@
+---
+- hosts: all
+  become: true
+  become_user: root
+
+  vars:
+    apache_package: apache2
+    apache_service: apache2
+
+  handlers:
+    - name: restart apache
+      service:
+        name: "{{ apache_service }}"
+        state: restarted
+
+  pre_tasks:
+    - name: Update apt cache (on Debian).
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_os_family == 'Debian'
+
+  tasks:
+    - name: Update all packages to the latest version
+      apt:
+        upgrade: dist
+
+    - name: Ensure apache is installed.
+      apt:
+        name: "{{ apache_package }}"
+        state: present
+        install_recommends: true
+
+    - name: Copy a web page.
+      copy:
+        content: |
+          <html>
+          <head><title>Hello world!</title></head>
+          <body>Hello world!</body>
+          </html>
+        dest: "/var/www/html/index.html"
+        mode: "0644"
+      notify: restart apache
+
+    - name: Ensure apache is running and starts at boot.
+      service:
+        name: "{{ apache_service }}"
+        state: started
+        enabled: true
