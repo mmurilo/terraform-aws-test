@@ -137,7 +137,7 @@ output "linux_public_ip" {
 
 ## testBox
 resource "aws_instance" "testbox" {
-  count         = 2
+  count         = 1
   ami           = data.aws_ami.CentOS.id
   instance_type = "t3a.nano"
   credit_specification {

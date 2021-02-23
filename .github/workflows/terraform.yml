@@ -30,7 +30,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 0.12.23
+          terraform_version: 0.14
         #   cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }} # terraform-cloud
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
       - name: Terraform Init
@@ -50,12 +50,12 @@ jobs:
       # Generates an execution plan for Terraform
       - name: Terraform Plan
         id: plan
-        run: terraform plan
+        run: terraform plan -no-color
 
         # if: github.event_name == 'pull_request'
         # continue-on-error: true
       - name: Update Pull Request
-        uses: actions/github-script@0.9.0
+        uses: actions/github-script@v3 #0.9.0
         if: github.event_name == 'pull_request'
         env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
@@ -66,8 +66,11 @@ jobs:
             #### Terraform Validate ⚙️\`${{ steps.validate.outcome }}\`
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
             <details><summary>Show Plan</summary>
+
             \`\`\`${process.env.PLAN}\`\`\`
+
             </details>
+
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
               
             github.issues.createComment({

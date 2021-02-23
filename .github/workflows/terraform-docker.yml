@@ -7,10 +7,10 @@ on:
   pull_request:
 
 jobs:
-  terraform-dokcer:
-    name: "Terraform"
+  terraform-docker:
+    name: Terraform
     runs-on: ubuntu-latest
-    container: hashicorp/terraform:0.12.23
+    container: hashicorp/terraform:0.14.7
 
     env:
       TF_VAR_access_key: ${{ secrets.ZENHUB_AWS_ACCESS_KEY }}
@@ -30,7 +30,7 @@ jobs:
 
       # Checks that all Terraform configuration files adhere to a canonical format
       - name: Terraform Format
-        id: format
+        id: fmt
         run: terraform fmt -check
 
         # continue-on-error: true
@@ -41,24 +41,42 @@ jobs:
       # Generates an execution plan for Terraform
       - name: Terraform Plan
         id: plan
-        run: terraform plan
+        run: terraform plan -out=planfile
+
+      #     - name: Upload planfile
+      #       uses: actions/upload-artifact@v2
+      #       with:
+      #         name: tf-plan
+      #         path: planfile
+      #         retention-days: 1
+
+      # updatepr:
+      #   needs: terraform-docker
+      #   name: UpdatePR
+      #   runs-on: ubuntu-latest
+
+      #   steps:
+      #     - name: Download planfile
+      #       uses: actions/download-artifact@v2
+      #       with:
+      #         name: tf-plan
+
+      - name: Terraform Plan output
+        id: planfile
+        run: echo ::set-output name=plan::$(terraform show -no-color planfile)
 
       - name: Update Pull Request
-        uses: actions/github-script@0.9.0
+        uses: actions/github-script@v3 #0.9.0
         if: github.event_name == 'pull_request'
         env:
-          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+          PLAN: "terraform\n${{ steps.planfile.outputs.plan }}"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Validate ⚙️\`${{ steps.validate.outcome }}\`
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-            <details><summary>Show Plan</summary>
-            \`\`\`${process.env.PLAN}\`\`\`
-            </details>
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-              
+                          
             github.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -67,6 +85,7 @@ jobs:
             })
         # On push to main, build or change infrastructure according to Terraform configuration files
         # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+
 
 #    - name: Terraform Apply
 #      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
