@@ -10,7 +10,7 @@ jobs:
   terraform-docker:
     name: Terraform
     runs-on: ubuntu-latest
-    container: hashicorp/terraform:0.12.23
+    container: hashicorp/terraform:0.14.7
 
     env:
       TF_VAR_access_key: ${{ secrets.ZENHUB_AWS_ACCESS_KEY }}
@@ -76,11 +76,7 @@ jobs:
             const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Validate ⚙️\`${{ steps.validate.outcome }}\`
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
-            <details><summary>Show Plan</summary>
-            \`\`\`${process.env.PLAN}\`\`\`
-            </details>
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-              
+                          
             github.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
